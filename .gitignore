@@ -1,0 +1,15 @@
+# dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# env (절대 커밋하지 말 것)
+.env.local
+.env*.local
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
