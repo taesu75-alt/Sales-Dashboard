@@ -31,8 +31,9 @@ export default function AddLeadModal({ onClose, onCreated }: Props) {
         current_packaging: form.current_packaging.trim() || undefined,
       });
       onCreated();
-    } catch (err) {
-      setError('리드 등록 중 오류가 발생했습니다.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : JSON.stringify(err);
+      setError(`오류: ${msg}`);
       console.error(err);
     } finally {
       setLoading(false);
