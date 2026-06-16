@@ -4,7 +4,13 @@ import { useParams, useRouter } from 'next/navigation';
 import { getLead, getStagesWithItems, deleteLead } from '@/lib/db';
 import type { Lead, Stage, Status } from '@/lib/types';
 import { computeLeadStatus, computeStageStatus } from '@/lib/types';
-import StageSection from '@/components/StageSection';
+import StageCard from '@/components/StageCard';
+
+const dotColor: Record<Status, string> = {
+  green: 'bg-status-green',
+  red: 'bg-status-red',
+  gray: 'bg-status-gray',
+};
 
 export default function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -21,30 +27,19 @@ export default function LeadDetailPage() {
     setLoading(false);
   }, [id]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData]);
 
   async function handleDelete() {
-    if (!confirm('이 리드를 삭제하시겠습니까? 모든 스테이지 데이터가 삭제됩니다.')) return;
+    if (!confirm('이 리드를 삭제하시겠습니까?')) return;
     setDeleting(true);
-    try {
-      await deleteLead(id);
-      router.push('/');
-    } catch {
-      setDeleting(false);
-    }
+    try { await deleteLead(id); router.push('/'); }
+    catch { setDeleting(false); }
   }
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <span className="material-symbols-outlined text-secondary animate-spin" style={{ fontSize: 36 }}>
-            progress_activity
-          </span>
-          <p className="text-body-md text-secondary">불러오는 중...</p>
-        </div>
+        <span className="material-symbols-outlined text-secondary animate-spin" style={{ fontSize: 36 }}>progress_activity</span>
       </div>
     );
   }
@@ -62,22 +57,12 @@ export default function LeadDetailPage() {
 
   const overallStatus = computeLeadStatus(stages);
   const greenCount = stages.filter((s) => computeStageStatus(s.items ?? []) === 'green').length;
+  const redCount = stages.filter((s) => computeStageStatus(s.items ?? []) === 'red').length;
   const progress = stages.length > 0 ? Math.round((greenCount / stages.length) * 100) : 0;
-
-  const overallBg: Record<Status, string> = {
-    green: 'bg-status-green',
-    red: 'bg-status-red',
-    gray: 'bg-status-gray',
-  };
-  const overallLabel: Record<Status, string> = {
-    green: '전체 정상 진행',
-    red: '이슈 발생 — 확인 필요',
-    gray: '진행 전 단계 있음',
-  };
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
+      {/* 헤더 */}
       <header className="sticky top-0 z-50 flex items-center gap-3 px-container-mobile py-sm bg-background border-b border-outline-variant">
         <button
           onClick={() => router.push('/')}
@@ -85,7 +70,10 @@ export default function LeadDetailPage() {
         >
           <span className="material-symbols-outlined text-primary" style={{ fontSize: 22 }}>arrow_back</span>
         </button>
-        <h1 className="flex-1 text-headline-md font-semibold text-primary truncate">{lead.company_name}</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-headline-sm font-semibold text-primary truncate">{lead.company_name}</h1>
+          <p className="text-label-sm text-secondary truncate">{lead.item_name}</p>
+        </div>
         <button
           onClick={handleDelete}
           disabled={deleting}
@@ -95,122 +83,82 @@ export default function LeadDetailPage() {
         </button>
       </header>
 
-      <main className="px-container-mobile mt-lg space-y-md">
+      <main className="px-container-mobile mt-md space-y-md">
 
-        {/* ── 상단 신호등 요약 패널 ── */}
+        {/* ── 상단 가로 신호등 바 ── */}
         <section className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
-          {/* 전체 상태 바 */}
-          <div className={`flex items-center gap-3 px-md py-sm ${overallBg[overallStatus]}/10`}>
-            <span
-              className={`w-4 h-4 rounded-full flex-shrink-0 ${overallBg[overallStatus]} ${
-                overallStatus === 'green' ? 'traffic-green' : overallStatus === 'red' ? 'traffic-red' : ''
-              }`}
-            />
-            <div className="flex-1">
-              <p className="text-headline-sm font-semibold text-primary">{lead.company_name}</p>
-              <p className="text-label-sm text-secondary">{lead.item_name}</p>
-            </div>
-            <span className="text-label-md text-secondary tabular-nums">{greenCount}/{stages.length}</span>
+          {/* 전체 상태 행 */}
+          <div className="flex items-center gap-3 px-md py-sm border-b border-outline-variant/30">
+            <span className={`w-4 h-4 rounded-full flex-shrink-0 ${dotColor[overallStatus]} ${overallStatus === 'green' ? 'traffic-green' : overallStatus === 'red' ? 'traffic-red' : ''}`} />
+            <span className="flex-1 text-body-md font-semibold text-primary">
+              {overallStatus === 'green' ? '전체 정상 진행' : overallStatus === 'red' ? '이슈 발생 — 확인 필요' : '진행 전 단계 있음'}
+            </span>
+            <span className="text-label-sm text-secondary tabular-nums">{greenCount}/{stages.length} 완료</span>
           </div>
 
           {/* 진행률 바 */}
-          <div className="h-1.5 bg-surface-container">
-            <div
-              className={`h-full transition-all duration-700 ${overallBg[overallStatus]}`}
-              style={{ width: `${progress}%` }}
-            />
+          <div className="h-1 bg-surface-container">
+            <div className={`h-full transition-all duration-700 ${dotColor[overallStatus]}`} style={{ width: `${progress}%` }} />
           </div>
 
-          {/* 8개 단계 신호등 그리드 */}
-          <div className="grid grid-cols-4 divide-x divide-y divide-outline-variant/30">
-            {stages.map((stage) => {
+          {/* 8단계 가로 1열 신호등 */}
+          <div className="flex overflow-x-auto no-scrollbar">
+            {stages.map((stage, idx) => {
               const st = computeStageStatus(stage.items ?? []);
-              const dot: Record<Status, string> = {
-                green: 'bg-status-green',
-                red: 'bg-status-red',
-                gray: 'bg-status-gray',
-              };
-              const itemCount = stage.items?.length ?? 0;
-              const doneCount = stage.items?.filter((i) => i.status === 'green').length ?? 0;
-
+              const isLast = idx === stages.length - 1;
               return (
-                <button
+                <div
                   key={stage.id}
-                  onClick={() => {
-                    const el = document.getElementById(`stage-${stage.id}`);
-                    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }}
-                  className="flex flex-col items-center justify-center gap-1 py-sm px-xs hover:bg-surface-container-low transition-colors"
+                  className={`flex flex-col items-center justify-center gap-1 py-sm flex-1 min-w-[70px] ${!isLast ? 'border-r border-outline-variant/30' : ''}`}
                 >
-                  <span className={`w-3.5 h-3.5 rounded-full ${dot[st]}`} />
-                  <span className="text-[10px] font-semibold text-on-surface text-center leading-tight">
+                  <span className={`w-3.5 h-3.5 rounded-full ${dotColor[st]}`} />
+                  <span className="text-[10px] font-semibold text-on-surface text-center leading-tight px-1 whitespace-nowrap">
                     {stage.name}
                   </span>
                   <span className="text-[9px] text-secondary tabular-nums">
-                    {doneCount}/{itemCount}
+                    {stage.items?.filter(i => i.status === 'green').length ?? 0}/{stage.items?.length ?? 0}
                   </span>
-                </button>
+                </div>
               );
             })}
           </div>
 
-          {/* 기본 정보 */}
-          <div className="px-md py-sm border-t border-outline-variant/30 flex flex-wrap gap-md">
-            {lead.current_packaging && (
-              <div className="flex items-center gap-1">
-                <span className="material-symbols-outlined text-secondary" style={{ fontSize: 14 }}>inventory_2</span>
-                <span className="text-label-sm text-secondary">{lead.current_packaging}</span>
-              </div>
-            )}
+          {/* 요약 수치 */}
+          <div className="flex items-center gap-md px-md py-xs border-t border-outline-variant/30">
             <div className="flex items-center gap-1">
-              <span className="material-symbols-outlined text-secondary" style={{ fontSize: 14 }}>calendar_today</span>
-              <span className="text-label-sm text-secondary">
-                {new Date(lead.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' })}
-              </span>
+              <span className="w-2 h-2 rounded-full bg-status-green" />
+              <span className="text-label-sm text-secondary">완료 {greenCount}</span>
             </div>
-            <div className="ml-auto">
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                overallStatus === 'green' ? 'bg-status-green/10 text-status-green' :
-                overallStatus === 'red' ? 'bg-status-red/10 text-status-red' :
-                'bg-status-gray/20 text-secondary'
-              }`}>
-                {overallLabel[overallStatus]}
-              </span>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-status-red" />
+              <span className="text-label-sm text-secondary">이슈 {redCount}</span>
             </div>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-status-gray" />
+              <span className="text-label-sm text-secondary">미시작 {stages.length - greenCount - redCount}</span>
+            </div>
+            {lead.current_packaging && (
+              <span className="ml-auto text-label-sm text-secondary truncate max-w-[120px]">{lead.current_packaging}</span>
+            )}
           </div>
         </section>
 
-        {/* ── 단계별 상세 섹션 ── */}
+        {/* ── 단계 카드 그리드 (2×4) ── */}
         <section>
-          <h3 className="text-headline-sm font-semibold text-primary mb-sm">단계별 진행현황</h3>
-          <div className="space-y-sm">
+          <div className="flex items-center justify-between mb-sm">
+            <h3 className="text-headline-sm font-semibold text-primary">단계별 진행현황</h3>
+            <div className="flex items-center gap-md text-label-sm text-secondary">
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-status-green" />신호등 클릭으로 상태 변경</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-sm">
             {stages.map((stage) => (
-              <div key={stage.id} id={`stage-${stage.id}`}>
-                <StageSection stage={stage} onUpdated={loadData} />
-              </div>
+              <StageCard key={stage.id} stage={stage} onUpdated={loadData} />
             ))}
           </div>
         </section>
 
-        {/* 범례 */}
-        <section className="bg-surface-container-low border border-outline-variant/50 rounded-xl p-md">
-          <div className="flex gap-lg flex-wrap">
-            <LegendRow color="bg-status-green" label="초록 — 완료" />
-            <LegendRow color="bg-status-red" label="빨강 — 이슈" />
-            <LegendRow color="bg-status-gray" label="회색 — 미시작" />
-          </div>
-          <p className="mt-xs text-label-sm text-secondary">* 소항목 아이콘 클릭 → 상태 순환 변경</p>
-        </section>
       </main>
-    </div>
-  );
-}
-
-function LegendRow({ color, label }: { color: string; label: string }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className={`inline-block w-2.5 h-2.5 rounded-full ${color}`} />
-      <span className="text-label-sm text-secondary">{label}</span>
     </div>
   );
 }
