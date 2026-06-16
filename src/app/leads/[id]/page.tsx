@@ -4,27 +4,14 @@ import { useParams, useRouter } from 'next/navigation';
 import { getLead, getStagesWithItems, deleteLead } from '@/lib/db';
 import type { Lead, Stage, Status } from '@/lib/types';
 import { computeLeadStatus, computeStageStatus } from '@/lib/types';
+import { STATUS_HEX, STATUS_LABEL, STATUS_BG_ALPHA } from '@/lib/statusColors';
 import StageCard from '@/components/StageCard';
-
-const dotColor: Record<Status, string> = {
-  green:  'bg-status-green',
-  yellow: 'bg-status-yellow',
-  red:    'bg-status-red',
-  gray:   'bg-status-gray',
-};
 
 const overallLabel: Record<Status, string> = {
   green:  '전체 완료',
   yellow: '진행 중',
   red:    '이슈 발생 — 확인 필요',
   gray:   '진행 전 단계 있음',
-};
-
-const pulseClass: Record<Status, string> = {
-  green:  'traffic-green',
-  yellow: '',
-  red:    'traffic-red',
-  gray:   '',
 };
 
 export default function LeadDetailPage() {
@@ -100,14 +87,20 @@ export default function LeadDetailPage() {
 
           {/* 전체 상태 행 */}
           <div className="flex items-center gap-3 px-md py-sm border-b border-outline-variant/30">
-            <span className={`w-4 h-4 rounded-full flex-shrink-0 ${dotColor[overallStatus]} ${pulseClass[overallStatus]}`} />
+            <span
+              className="w-4 h-4 rounded-full flex-shrink-0"
+              style={{ backgroundColor: STATUS_HEX[overallStatus] }}
+            />
             <span className="flex-1 text-body-md font-semibold text-primary">{overallLabel[overallStatus]}</span>
             <span className="text-label-sm text-secondary tabular-nums">{greenCount}/{stages.length} 완료</span>
           </div>
 
           {/* 진행률 바 */}
           <div className="h-1 bg-surface-container">
-            <div className={`h-full transition-all duration-700 ${dotColor[overallStatus]}`} style={{ width: `${progress}%` }} />
+            <div
+              className="h-full transition-all duration-700"
+              style={{ width: `${progress}%`, backgroundColor: STATUS_HEX[overallStatus] }}
+            />
           </div>
 
           {/* 8단계 가로 1열 */}
@@ -115,27 +108,37 @@ export default function LeadDetailPage() {
             {stages.map((stage, idx) => {
               const st = computeStageStatus(stage.items ?? []);
               const isLast = idx === stages.length - 1;
+              const doneCount = stage.items?.filter(i => i.status === 'green').length ?? 0;
+              const totalCount = stage.items?.length ?? 0;
               return (
                 <div key={stage.id}
                   className={`flex flex-col items-center justify-center gap-1 py-sm flex-1 min-w-[70px] ${!isLast ? 'border-r border-outline-variant/30' : ''}`}>
-                  <span className={`w-3.5 h-3.5 rounded-full ${dotColor[st]}`} />
+                  <span
+                    className="w-3.5 h-3.5 rounded-full"
+                    style={{ backgroundColor: STATUS_HEX[st] }}
+                  />
                   <span className="text-[10px] font-semibold text-on-surface text-center leading-tight px-1 whitespace-nowrap">
                     {stage.name}
                   </span>
                   <span className="text-[9px] text-secondary tabular-nums">
-                    {stage.items?.filter(i => i.status === 'green').length ?? 0}/{stage.items?.length ?? 0}
+                    {doneCount}/{totalCount}
                   </span>
                 </div>
               );
             })}
           </div>
 
-          {/* 요약 수치 + 범례 */}
+          {/* 요약 수치 */}
           <div className="flex items-center flex-wrap gap-sm px-md py-xs border-t border-outline-variant/30">
-            <SummaryDot color="bg-status-green"  label={`완료 ${greenCount}`} />
-            <SummaryDot color="bg-status-yellow" label={`진행 중 ${yellowCount}`} />
-            <SummaryDot color="bg-status-red"    label={`이슈 ${redCount}`} />
-            <SummaryDot color="bg-status-gray"   label={`미시작 ${grayCount}`} />
+            {(['green','yellow','red','gray'] as Status[]).map((s) => {
+              const count = s === 'green' ? greenCount : s === 'yellow' ? yellowCount : s === 'red' ? redCount : grayCount;
+              return (
+                <div key={s} className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_HEX[s] }} />
+                  <span className="text-label-sm text-secondary">{STATUS_LABEL[s]} {count}</span>
+                </div>
+              );
+            })}
             {lead.current_packaging && (
               <span className="ml-auto text-label-sm text-secondary truncate max-w-[120px]">{lead.current_packaging}</span>
             )}
@@ -158,32 +161,18 @@ export default function LeadDetailPage() {
         {/* 범례 */}
         <section className="bg-surface-container-low border border-outline-variant/50 rounded-xl p-md">
           <div className="flex flex-wrap gap-md">
-            <LegendRow color="bg-status-green"  label="초록 — 완료" />
-            <LegendRow color="bg-status-yellow" label="노랑 — 진행 중" />
-            <LegendRow color="bg-status-red"    label="빨강 — 이슈" />
-            <LegendRow color="bg-status-gray"   label="회색 — 미시작" />
+            {(['green','yellow','red','gray'] as Status[]).map((s) => (
+              <div key={s} className="flex items-center gap-1.5">
+                <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: STATUS_HEX[s] }} />
+                <span className="text-label-sm text-secondary">
+                  {s === 'green' ? '초록 — 완료' : s === 'yellow' ? '노랑 — 진행 중' : s === 'red' ? '빨강 — 이슈' : '회색 — 미시작'}
+                </span>
+              </div>
+            ))}
           </div>
           <p className="mt-xs text-label-sm text-secondary">* 소항목 신호등 클릭 → 회색 → 초록 → 노랑 → 빨강 → 회색 순환</p>
         </section>
       </main>
-    </div>
-  );
-}
-
-function SummaryDot({ color, label }: { color: string; label: string }) {
-  return (
-    <div className="flex items-center gap-1">
-      <span className={`w-2 h-2 rounded-full ${color}`} />
-      <span className="text-label-sm text-secondary">{label}</span>
-    </div>
-  );
-}
-
-function LegendRow({ color, label }: { color: string; label: string }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className={`inline-block w-2.5 h-2.5 rounded-full ${color}`} />
-      <span className="text-label-sm text-secondary">{label}</span>
     </div>
   );
 }

@@ -3,46 +3,15 @@ import { useState } from 'react';
 import type { Stage, StageItem, Status } from '@/lib/types';
 import { computeStageStatus } from '@/lib/types';
 import { addStageItem, updateStageItem, deleteStageItem } from '@/lib/db';
+import { STATUS_HEX, STATUS_LABEL, STATUS_BG_ALPHA, STATUS_BORDER } from '@/lib/statusColors';
 
 interface Props {
   stage: Stage;
   onUpdated: () => void;
 }
 
-// 회색 → 초록 → 노랑 → 빨강 → 회색
 const statusCycle: Record<Status, Status> = {
-  gray: 'green',
-  green: 'yellow',
-  yellow: 'red',
-  red: 'gray',
-};
-
-const dotColor: Record<Status, string> = {
-  green:  'bg-status-green',
-  yellow: 'bg-status-yellow',
-  red:    'bg-status-red',
-  gray:   'bg-status-gray',
-};
-
-const dotLabel: Record<Status, string> = {
-  green:  '완료',
-  yellow: '진행 중',
-  red:    '이슈',
-  gray:   '미시작',
-};
-
-const borderColor: Record<Status, string> = {
-  green:  'border-status-green/40',
-  yellow: 'border-status-yellow/50',
-  red:    'border-status-red/60',
-  gray:   'border-outline-variant',
-};
-
-const headerBg: Record<Status, string> = {
-  green:  'bg-status-green/8',
-  yellow: 'bg-status-yellow/8',
-  red:    'bg-status-red/8',
-  gray:   'bg-surface-container-low',
+  gray: 'green', green: 'yellow', yellow: 'red', red: 'gray',
 };
 
 export default function StageCard({ stage, onUpdated }: Props) {
@@ -86,11 +55,20 @@ export default function StageCard({ stage, onUpdated }: Props) {
   }
 
   return (
-    <div className={`flex flex-col bg-surface-container-lowest border-2 rounded-xl overflow-hidden transition-all duration-200 ${borderColor[stageStatus]}`}>
+    <div
+      className="flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden transition-all duration-200"
+      style={{ border: `2px solid ${STATUS_BORDER[stageStatus]}` }}
+    >
       {/* 카드 헤더 */}
-      <div className={`flex items-center justify-between px-sm py-xs ${headerBg[stageStatus]}`}>
+      <div
+        className="flex items-center justify-between px-sm py-xs"
+        style={{ backgroundColor: STATUS_BG_ALPHA[stageStatus] }}
+      >
         <div className="flex items-center gap-1.5 min-w-0">
-          <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${dotColor[stageStatus]}`} />
+          <span
+            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+            style={{ backgroundColor: STATUS_HEX[stageStatus] }}
+          />
           <span className="text-[13px] font-semibold text-primary truncate">{stage.name}</span>
         </div>
         <span className="text-[10px] text-secondary tabular-nums flex-shrink-0 ml-1">
@@ -106,18 +84,20 @@ export default function StageCard({ stage, onUpdated }: Props) {
         {items.map((item) => (
           <div key={item.id}>
             <div className="flex items-center gap-1.5 px-sm py-xs group">
-              {/* 신호등 버튼 — 클릭으로 4단계 순환 */}
+              {/* 신호등 버튼 */}
               <button
                 onClick={() => handleStatusCycle(item)}
                 className="flex-shrink-0 hover:scale-110 transition-transform"
-                title={`현재: ${dotLabel[item.status]} → 클릭하여 변경`}
+                title={`현재: ${STATUS_LABEL[item.status]} → 클릭하여 변경`}
               >
-                <span className={`w-3 h-3 rounded-full block ${dotColor[item.status]}`} />
+                <span
+                  className="w-3 h-3 rounded-full block"
+                  style={{ backgroundColor: STATUS_HEX[item.status] }}
+                />
               </button>
 
               <span className="flex-1 text-[12px] text-on-surface leading-tight">{item.name}</span>
 
-              {/* 메모 버튼 */}
               <button
                 onClick={() => {
                   if (editingNotes === item.id) { setEditingNotes(null); }
@@ -131,7 +111,6 @@ export default function StageCard({ stage, onUpdated }: Props) {
                 </span>
               </button>
 
-              {/* 삭제 버튼 */}
               {!item.is_default && (
                 <button
                   onClick={() => handleDeleteItem(item.id)}
@@ -142,12 +121,10 @@ export default function StageCard({ stage, onUpdated }: Props) {
               )}
             </div>
 
-            {/* 메모 표시 */}
             {item.notes && editingNotes !== item.id && (
               <p className="px-sm pb-xs text-[10px] text-secondary italic pl-6 leading-tight">{item.notes}</p>
             )}
 
-            {/* 메모 편집 */}
             {editingNotes === item.id && (
               <div className="px-sm pb-sm">
                 <textarea
