@@ -65,10 +65,7 @@ export default function StageCard({ stage, onUpdated }: Props) {
         style={{ backgroundColor: STATUS_BG_ALPHA[stageStatus] }}
       >
         <div className="flex items-center gap-1.5 min-w-0">
-          <span
-            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-            style={{ backgroundColor: STATUS_HEX[stageStatus] }}
-          />
+          <div style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: STATUS_HEX[stageStatus], flexShrink: 0 }} />
           <span className="text-[13px] font-semibold text-primary truncate">{stage.name}</span>
         </div>
         <span className="text-[10px] text-secondary tabular-nums flex-shrink-0 ml-1">
@@ -87,13 +84,17 @@ export default function StageCard({ stage, onUpdated }: Props) {
               {/* 신호등 버튼 */}
               <button
                 onClick={() => handleStatusCycle(item)}
-                className="flex-shrink-0 hover:scale-110 transition-transform"
                 title={`현재: ${STATUS_LABEL[item.status]} → 클릭하여 변경`}
+                style={{ flexShrink: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
               >
-                <span
-                  className="w-3 h-3 rounded-full block"
-                  style={{ backgroundColor: STATUS_HEX[item.status] }}
-                />
+                <div style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: '50%',
+                  backgroundColor: STATUS_HEX[item.status],
+                  flexShrink: 0,
+                  display: 'block',
+                }} />
               </button>
 
               <span className="flex-1 text-[12px] text-on-surface leading-tight">{item.name}</span>

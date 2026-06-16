@@ -87,10 +87,7 @@ export default function LeadDetailPage() {
 
           {/* 전체 상태 행 */}
           <div className="flex items-center gap-3 px-md py-sm border-b border-outline-variant/30">
-            <span
-              className="w-4 h-4 rounded-full flex-shrink-0"
-              style={{ backgroundColor: STATUS_HEX[overallStatus] }}
-            />
+            <div style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: STATUS_HEX[overallStatus], flexShrink: 0 }} />
             <span className="flex-1 text-body-md font-semibold text-primary">{overallLabel[overallStatus]}</span>
             <span className="text-label-sm text-secondary tabular-nums">{greenCount}/{stages.length} 완료</span>
           </div>
@@ -113,10 +110,7 @@ export default function LeadDetailPage() {
               return (
                 <div key={stage.id}
                   className={`flex flex-col items-center justify-center gap-1 py-sm flex-1 min-w-[70px] ${!isLast ? 'border-r border-outline-variant/30' : ''}`}>
-                  <span
-                    className="w-3.5 h-3.5 rounded-full"
-                    style={{ backgroundColor: STATUS_HEX[st] }}
-                  />
+                  <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: STATUS_HEX[st], margin: '0 auto' }} />
                   <span className="text-[10px] font-semibold text-on-surface text-center leading-tight px-1 whitespace-nowrap">
                     {stage.name}
                   </span>
@@ -134,7 +128,7 @@ export default function LeadDetailPage() {
               const count = s === 'green' ? greenCount : s === 'yellow' ? yellowCount : s === 'red' ? redCount : grayCount;
               return (
                 <div key={s} className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_HEX[s] }} />
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: STATUS_HEX[s], flexShrink: 0 }} />
                   <span className="text-label-sm text-secondary">{STATUS_LABEL[s]} {count}</span>
                 </div>
               );
@@ -163,7 +157,7 @@ export default function LeadDetailPage() {
           <div className="flex flex-wrap gap-md">
             {(['green','yellow','red','gray'] as Status[]).map((s) => (
               <div key={s} className="flex items-center gap-1.5">
-                <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: STATUS_HEX[s] }} />
+                <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: STATUS_HEX[s], display: 'inline-block', flexShrink: 0 }} />
                 <span className="text-label-sm text-secondary">
                   {s === 'green' ? '초록 — 완료' : s === 'yellow' ? '노랑 — 진행 중' : s === 'red' ? '빨강 — 이슈' : '회색 — 미시작'}
                 </span>
