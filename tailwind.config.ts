@@ -2,6 +2,14 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: ['./src/**/*.{ts,tsx}'],
+  safelist: [
+    'bg-status-green', 'bg-status-yellow', 'bg-status-red', 'bg-status-gray',
+    'bg-status-green/10', 'bg-status-yellow/10', 'bg-status-red/10', 'bg-status-gray/20',
+    'bg-status-green/8', 'bg-status-yellow/8', 'bg-status-red/8',
+    'text-status-green', 'text-status-yellow', 'text-status-red', 'text-status-gray',
+    'border-status-green/40', 'border-status-yellow/50', 'border-status-red/60',
+    'traffic-green', 'traffic-red',
+  ],
   theme: {
     extend: {
       colors: {
