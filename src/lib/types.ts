@@ -1,4 +1,4 @@
-export type Status = 'green' | 'red' | 'gray';
+export type Status = 'green' | 'yellow' | 'red' | 'gray';
 
 export interface StageItem {
   id: string;
@@ -31,21 +31,20 @@ export interface Lead {
   stages?: Stage[];
 }
 
-// 스테이지의 종합 상태 계산
+// 빨강 > 노랑 > 회색 > 초록 우선순위
 export function computeStageStatus(items: StageItem[]): Status {
   if (items.length === 0) return 'gray';
   if (items.some((i) => i.status === 'red')) return 'red';
+  if (items.some((i) => i.status === 'yellow')) return 'yellow';
   if (items.some((i) => i.status === 'gray')) return 'gray';
   return 'green';
 }
 
-// 리드 전체 종합 상태 계산
 export function computeLeadStatus(stages: Stage[]): Status {
   const allItems = stages.flatMap((s) => s.items ?? []);
   return computeStageStatus(allItems);
 }
 
-// 기본 스테이지 템플릿
 export const DEFAULT_STAGES: { name: string; name_en: string; items: string[] }[] = [
   {
     name: '포장개발',

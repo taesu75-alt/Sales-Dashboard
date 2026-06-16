@@ -37,9 +37,9 @@ const config: Config = {
         'on-background': '#0d1c2d',
         'surface-variant': '#d4e4fa',
         'status-green': '#22C55E',
+        'status-yellow': '#EAB308',
         'status-red': '#EF4444',
         'status-gray': '#94A3B8',
-        'status-yellow': '#EAB308',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

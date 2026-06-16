@@ -9,24 +9,40 @@ interface Props {
   onUpdated: () => void;
 }
 
-const statusCycle: Record<Status, Status> = { gray: 'green', green: 'red', red: 'gray' };
+// 회색 → 초록 → 노랑 → 빨강 → 회색
+const statusCycle: Record<Status, Status> = {
+  gray: 'green',
+  green: 'yellow',
+  yellow: 'red',
+  red: 'gray',
+};
 
 const dotColor: Record<Status, string> = {
-  green: 'bg-status-green',
-  red: 'bg-status-red',
-  gray: 'bg-status-gray',
+  green:  'bg-status-green',
+  yellow: 'bg-status-yellow',
+  red:    'bg-status-red',
+  gray:   'bg-status-gray',
+};
+
+const dotLabel: Record<Status, string> = {
+  green:  '완료',
+  yellow: '진행 중',
+  red:    '이슈',
+  gray:   '미시작',
 };
 
 const borderColor: Record<Status, string> = {
-  green: 'border-status-green/40',
-  red: 'border-status-red/60',
-  gray: 'border-outline-variant',
+  green:  'border-status-green/40',
+  yellow: 'border-status-yellow/50',
+  red:    'border-status-red/60',
+  gray:   'border-outline-variant',
 };
 
 const headerBg: Record<Status, string> = {
-  green: 'bg-status-green/8',
-  red: 'bg-status-red/8',
-  gray: 'bg-surface-container-low',
+  green:  'bg-status-green/8',
+  yellow: 'bg-status-yellow/8',
+  red:    'bg-status-red/8',
+  gray:   'bg-surface-container-low',
 };
 
 export default function StageCard({ stage, onUpdated }: Props) {
@@ -90,16 +106,15 @@ export default function StageCard({ stage, onUpdated }: Props) {
         {items.map((item) => (
           <div key={item.id}>
             <div className="flex items-center gap-1.5 px-sm py-xs group">
-              {/* 신호등 버튼 */}
+              {/* 신호등 버튼 — 클릭으로 4단계 순환 */}
               <button
                 onClick={() => handleStatusCycle(item)}
                 className="flex-shrink-0 hover:scale-110 transition-transform"
-                title="클릭 → 상태 변경"
+                title={`현재: ${dotLabel[item.status]} → 클릭하여 변경`}
               >
                 <span className={`w-3 h-3 rounded-full block ${dotColor[item.status]}`} />
               </button>
 
-              {/* 항목명 */}
               <span className="flex-1 text-[12px] text-on-surface leading-tight">{item.name}</span>
 
               {/* 메모 버튼 */}
@@ -116,20 +131,18 @@ export default function StageCard({ stage, onUpdated }: Props) {
                 </span>
               </button>
 
-              {/* 삭제 버튼 (기본 항목 제외) */}
+              {/* 삭제 버튼 */}
               {!item.is_default && (
                 <button
                   onClick={() => handleDeleteItem(item.id)}
                   className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
                 >
-                  <span className="material-symbols-outlined text-secondary" style={{ fontSize: 13 }}>
-                    close
-                  </span>
+                  <span className="material-symbols-outlined text-secondary" style={{ fontSize: 13 }}>close</span>
                 </button>
               )}
             </div>
 
-            {/* 메모 인라인 표시 */}
+            {/* 메모 표시 */}
             {item.notes && editingNotes !== item.id && (
               <p className="px-sm pb-xs text-[10px] text-secondary italic pl-6 leading-tight">{item.notes}</p>
             )}
@@ -172,26 +185,15 @@ export default function StageCard({ stage, onUpdated }: Props) {
               className="w-full text-[12px] border border-outline-variant rounded px-2 py-1 focus:outline-none focus:border-primary bg-surface-container-lowest"
             />
             <div className="flex gap-xs">
-              <button
-                onClick={handleAddItem}
-                disabled={loading || !newItemName.trim()}
-                className="flex-1 py-0.5 bg-primary text-on-primary text-[11px] rounded disabled:opacity-50"
-              >
-                추가
-              </button>
-              <button
-                onClick={() => { setAddingItem(false); setNewItemName(''); }}
-                className="flex-1 py-0.5 text-[11px] text-secondary border border-outline-variant rounded"
-              >
-                취소
-              </button>
+              <button onClick={handleAddItem} disabled={loading || !newItemName.trim()}
+                className="flex-1 py-0.5 bg-primary text-on-primary text-[11px] rounded disabled:opacity-50">추가</button>
+              <button onClick={() => { setAddingItem(false); setNewItemName(''); }}
+                className="flex-1 py-0.5 text-[11px] text-secondary border border-outline-variant rounded">취소</button>
             </div>
           </div>
         ) : (
-          <button
-            onClick={() => setAddingItem(true)}
-            className="flex items-center gap-0.5 text-[11px] text-secondary hover:text-primary transition-colors w-full"
-          >
+          <button onClick={() => setAddingItem(true)}
+            className="flex items-center gap-0.5 text-[11px] text-secondary hover:text-primary transition-colors w-full">
             <span className="material-symbols-outlined" style={{ fontSize: 14 }}>add</span>
             소항목 추가
           </button>

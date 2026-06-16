@@ -13,8 +13,9 @@ export default function LeadCard({ lead, stages }: Props) {
   const router = useRouter();
   const overallStatus = computeLeadStatus(stages);
 
-  const greenCount = stages.filter((s) => computeStageStatus(s.items ?? []) === 'green').length;
-  const redCount = stages.filter((s) => computeStageStatus(s.items ?? []) === 'red').length;
+  const greenCount  = stages.filter((s) => computeStageStatus(s.items ?? []) === 'green').length;
+  const yellowCount = stages.filter((s) => computeStageStatus(s.items ?? []) === 'yellow').length;
+  const redCount    = stages.filter((s) => computeStageStatus(s.items ?? []) === 'red').length;
 
   const progress = stages.length > 0 ? Math.round((greenCount / stages.length) * 100) : 0;
 
@@ -59,10 +60,14 @@ export default function LeadCard({ lead, stages }: Props) {
       </div>
 
       {/* Stage Summary */}
-      <div className="flex items-center gap-md mt-sm">
+      <div className="flex items-center gap-sm mt-sm flex-wrap">
         <div className="flex items-center gap-1">
           <span className="inline-block w-2 h-2 rounded-full bg-status-green" />
           <span className="text-label-sm text-secondary tabular-nums">{greenCount}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="inline-block w-2 h-2 rounded-full bg-status-yellow" />
+          <span className="text-label-sm text-secondary tabular-nums">{yellowCount}</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="inline-block w-2 h-2 rounded-full bg-status-red" />
@@ -71,12 +76,10 @@ export default function LeadCard({ lead, stages }: Props) {
         <div className="flex items-center gap-1">
           <span className="inline-block w-2 h-2 rounded-full bg-status-gray" />
           <span className="text-label-sm text-secondary tabular-nums">
-            {stages.length - greenCount - redCount}
+            {stages.length - greenCount - yellowCount - redCount}
           </span>
         </div>
-        <span className="ml-auto text-label-sm text-secondary">
-          {stages.length}개 단계 →
-        </span>
+        <span className="ml-auto text-label-sm text-secondary">{stages.length}개 단계 →</span>
       </div>
     </div>
   );
